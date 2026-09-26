@@ -15,6 +15,8 @@ generate text; it only judges. That makes a call fast (about 0.25 s on a warm
 connection), cheap (a few hundred input tokens, about 20 output tokens), and
 deterministic enough to sit inside control flow.
 
+> **OpenJEV support:** Jev is built by [TypeSafe](https://typesafe.ai). This fork keeps TypeSafe as the default and adds optional support for [OpenJEV](https://openjev.sh), a free community gateway to the same Jev model — set `OPENJEV_API_KEY` (or `JEV_PROVIDER=openjev`) to use it. Original project: https://github.com/Tdual/fuzzyif by @Tdual.
+
 [![PyPI](https://img.shields.io/pypi/v/fuzzyif)](https://pypi.org/project/fuzzyif/)
 [![ci](https://github.com/Tdual/fuzzyif/actions/workflows/ci.yml/badge.svg)](https://github.com/Tdual/fuzzyif/actions/workflows/ci.yml)
 
@@ -40,6 +42,11 @@ You need a TypeSafe API key. fuzzyif looks for it in this order:
 1. `fuzzyif.configure(api_key="...")`
 2. the environment variable `TYPESAFE_API_KEY`
 3. the file `~/.config/typesafe/api_key`
+
+Alternatively, set `OPENJEV_API_KEY` to use [OpenJEV](https://openjev.sh), a free
+community gateway to the same Jev model. If only `OPENJEV_API_KEY` is set (and no
+TypeSafe key), fuzzyif uses OpenJEV automatically. Set `JEV_PROVIDER=openjev` to
+force OpenJEV even when a TypeSafe key is present.
 
 ## Quick start
 
@@ -226,11 +233,18 @@ fuzzyif.configure(
     cache_size=1024,                   # 0 disables the cache
     max_retries=3,
     base_url="https://api.typesafe.ai",
+    provider=None,                      # None = auto-detect; "openjev" or "typesafe" to force
 )
 ```
 
 `configure()` clears the cache and drops the HTTP connection. The cache key
 includes the model, so switching models never returns stale answers.
+
+**Provider selection:** TypeSafe is the default. If `TYPESAFE_API_KEY` is set (or
+the key file exists), fuzzyif uses TypeSafe — exactly as before. If only
+`OPENJEV_API_KEY` is set, it uses OpenJEV (`https://api.openjev.sh`, model
+`openjev`). Set `provider="openjev"` in `configure()` or `JEV_PROVIDER=openjev` in
+the environment to force OpenJEV regardless.
 
 ## When not to use it
 

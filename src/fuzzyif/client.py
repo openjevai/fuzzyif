@@ -10,7 +10,7 @@ import time
 from typing import Any, Callable
 from urllib.parse import urlparse
 
-from .config import Settings, resolve_api_key
+from .config import Settings, resolve_provider
 from .errors import APIError
 
 log = logging.getLogger("fuzzyif")
@@ -30,9 +30,11 @@ class JevClient:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.host = urlparse(settings.base_url).netloc
+        base_url, model, api_key = resolve_provider(settings)
+        self.host = urlparse(base_url).netloc
+        self.model = model
         self._headers = {
-            "Authorization": f"Bearer {resolve_api_key(settings.api_key)}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
         self.connection_factory: Callable[[str, float], Any] = _default_factory
@@ -80,7 +82,7 @@ class JevClient:
         """POST the questions about `state` and return Jev's `answers` dict."""
         # http.client only accepts str bodies that fit in latin-1; encode to UTF-8 bytes ourselves.
         body = json.dumps(
-            {"state": state, "model": self.settings.model, "questions": questions}, ensure_ascii=False
+            {"state": state, "model": self.model, "questions": questions}, ensure_ascii=False
         ).encode("utf-8")
         max_attempts = max(1, self.settings.max_retries)
         attempts = 0
